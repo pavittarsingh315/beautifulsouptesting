@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static 'frontend/main.css' %}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <meta charset="utf-8">
+        <title>Darkstar</title>
+    </head>
+
+    <body>
+    <nav>
+        <div class="container nav-wrapper">
+            <a href="/" class="brand-logo" title="Homepage">Darkstar</a>
+            <ul id="nav-mobile" class="right">
+                <li><a href="/" target="_blank" title="Homepage: New Tab">Home</a></li>
+        </div>
+    </nav>
+      <!-- <a href="search/" title="Page 2" class="left">Search</a> -->
+
+    <div class="container">
+        <h1 style="text-align: center">This is the first page</h1>
+        <div class="row">
+            <div class="col s4">
+                <!-- Promo Content 1 goes here -->
+                <div class="center">
+                    <i class=" large material-icons" style="color: orange">whatshot</i>
+                    <p>See what's popular</p>
+                    <p class="light center">Scrape away right here with a beautiful GUI.</p>
+                </div>
+            </div>
+
+            <div class="col s4">
+                <!-- Promo Content 2 goes here -->
+                <div class="center">
+                    <i class="large material-icons" style="color: #2870b8">store</i>
+                    <p>Browse countless stores</p>
+                    <p class="light center">We built in functionality to filter based on pricing.</p>
+                </div>
+            </div>
+
+            <div class="col s4">
+                <!-- Promo Content 3 goes here -->
+                <div class="center">
+                    <i class="large material-icons" style="color: #14de21">star</i>
+                    <p>Your saved products</p>
+                    <p class="light center">We built this with ❤️</p>
+                </div>
+            </div>
+        </div>
+
+        <form action="{% url 'search' %}" method="post">
+            {% csrf_token %}
+            <input type="text" name="Search" placeholder="What's Hot">
+            <button class="btn waves-effect waves-light" type="submit" name="action">Submit<i class="material-icons right">send</i></button>
+        </form>
+
+    {% block content %}
+
+    {% endblock content %}
+    </div>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    </body>
+</html>
