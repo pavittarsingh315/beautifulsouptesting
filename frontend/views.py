@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.views.generic import ListView
 from . import models
 import requests
 from requests.compat import quote_plus
@@ -19,32 +20,45 @@ def new_search(request):
     data = response.text
     soup = BeautifulSoup(data, features='html.parser')
 
-    post_listings = soup.find_all('li', {'class': 'result-row'})
+    objs = soup.find_all('li', {'class': 'result-row'})
 
-    # final_postings = []
+    for obj in objs:
+        title = obj.find(class_='result-title').text
+        url = obj.find('a').get('href')
 
-    for post in post_listings:
-        post_title = post.find(class_='result-title').text
-        post_url = post.find('a').get('href')
-
-        if post.find(class_='result-price'):
-            post_price = post.find(class_='result-price').text
+        if obj.find(class_='result-price'):
+            price = obj.find(class_='result-price').text
         else:
-            post_price = 'N/A'
+            price = 'N/A'
 
-        final_image_url = 'https://pixelz.cc/wp-content/uploads/2019/02/bugatti-chiron-sport-110-ans-uhd-4k-wallpaper.jpg'
+        image_url = 'https://i.pinimg.com/originals/09/6a/35/096a35453660aa9b83ba4ab6d9182d61.jpg'
+        # image_url = 'https://pixelz.cc/wp-content/uploads/2019/02/bugatti-chiron-sport-110-ans-uhd-4k-wallpaper.jpg'
 
-        # final_postings.append((post_title, post_url, post_price, final_image_url))
-
-        if models.Product.objects.filter(Name=post_title, Price=post_price, Link=post_url, Image=final_image_url):
-            continue
+        # this loop is what updates the field if it needs to be uodated. It also creates the object if the object isnt already there.
+        if models.Product.objects.filter(Name=title, Price=price, Link=url):
+            if models.Product.objects.filter(Name=title, Price=price, Link=url, Image=image_url):
+                continue
+            else:
+                models.Product.objects.filter(Name=title, Price=price, Link=url).update(Name=title, Price=price, Link=url, Image=image_url)
         else:
-            models.Product.objects.create(Name=post_title, Price=post_price, Link=post_url, Image=final_image_url)
+            models.Product.objects.update_or_create(Name=title, Price=price, Link=url, Image=image_url)
 
     final_postings = models.Product.objects.all()
+
 
     stuff_for_frontend = {
         'Search': search,
         'final_postings': final_postings,
     }
     return render(request, 'frontend/search.html', stuff_for_frontend)
+
+
+class SearchList(ListView):
+    model = models.Product
+    template_name = 'frontend/classSearch.html'
+    context_object_name = 'final_postings'
+    paginate_by = 21
+
+    # def get_queryset(self):
+    #     search = request.POST.get('Search')
+    #     return models.Product.objects.filter(Name=search)
