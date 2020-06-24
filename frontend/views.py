@@ -18,7 +18,6 @@ def new_search(request):
         BASE_CRAIGSLIST_URL = 'https://sacramento.craigslist.org/search/?query={}'
         Empty_Search = 'https://sacramento.craigslist.org/search/?query='
 
-        # this now allows the pagination to work
         final_url = BASE_CRAIGSLIST_URL.format(quote_plus(str(search)))
 
         if final_url != Empty_Search:
@@ -61,8 +60,6 @@ def new_search(request):
     except EmptyPage:
         Products = paginator.page(paginator.num_pages)
 
-    # keep getting quote_from_bytes error but everything works. If you want to revert to old code copy views.py and search.html
-    # from github. Its stable code.
 
     stuff_for_frontend = {
         'Search': search,
