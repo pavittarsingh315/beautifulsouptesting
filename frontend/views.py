@@ -19,7 +19,7 @@ def new_search(request):
         BASE_CRAIGSLIST_URL = 'https://sacramento.craigslist.org/search/?query={}'
         Empty_Search = 'https://sacramento.craigslist.org/search/?query='
 
-        final_url = BASE_CRAIGSLIST_URL.format(quote_plus(str(search)))
+        final_url = BASE_CRAIGSLIST_URL.format(quote_plus(search))
 
         if final_url != Empty_Search:
             response = requests.get(final_url)
