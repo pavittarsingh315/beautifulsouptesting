@@ -12,7 +12,8 @@ def home(request):
 
 def new_search(request):
     search = request.POST.get('Search')
-    models.Search.objects.create(Search_value=search)
+    if search != '':
+        models.Search.objects.create(Search_value=search)
 
     if search is not None:
         BASE_CRAIGSLIST_URL = 'https://sacramento.craigslist.org/search/?query={}'
@@ -47,6 +48,8 @@ def new_search(request):
                         models.Product.objects.filter(Name=title, Link=url).update(Name=title, Price=price, Link=url, Image=image_url)
                 else:
                     models.Product.objects.update_or_create(Name=title, Price=price, Link=url, Image=image_url)
+    else:
+        models.Search.objects.filter(Search_value=None).delete()
 
     # this orders it by alphabetizing. The one above was by which one was first in the data base or 'ID'
     product_list = models.Product.objects.get_queryset().order_by('Name')
