@@ -4,7 +4,7 @@
     <h2 style="text-align: center">{{ Search | title}}</h2>
 
     <div class="row">
-      {% for post in final_postings %}
+      {% for post in products %}
           <div class="col s4">
             <div class="card">
               <div class="card-image">
@@ -21,4 +21,28 @@
           </div>
       {% endfor %}
     </div>
+
+    {% if products.has_other_pages %}
+      <ul class="pagination center">
+        {% if products.has_previous %}
+            <li class="disabled waves-effect"><a href="?page=1"><i class="material-icons">subdirectory_arrow_left</i></a></li>
+            <li class="disabled waves-effect"><a href="?page={{ products.previous_page_number }}"><i class="material-icons">chevron_left</i></a></li>
+        {% endif %}
+
+        {% for num in products.paginator.page_range %}
+            {% if products.number == num %}
+                <li class="active waves-effect"><a href="?page={{ num }}">{{ num }}</a></li>
+            {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                <li class="disabled waves-effect"><a href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if products.has_next %}
+            <li class="disabled waves-effect"><a href="?page={{ products.next_page_number }}"><i class="material-icons">chevron_right</i></a></li>
+            <li class="disabled waves-effect"><a href="?page={{ products.paginator.num_pages }}"><i class="material-icons">subdirectory_arrow_right</i></a></li>
+        {% endif %}
+      </ul>
+    {% endif %}
+
+
 {% endblock content%}

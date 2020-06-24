@@ -4,6 +4,7 @@ from . import models
 import requests
 from requests.compat import quote_plus
 from bs4 import BeautifulSoup
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 def home(request):
@@ -13,42 +14,59 @@ def new_search(request):
     search = request.POST.get('Search')
     models.Search.objects.create(Search_value=search)
 
-    BASE_CRAIGSLIST_URL = 'https://sacramento.craigslist.org/search/?query={}'
-    BASE_IMAGE_URL = 'https://images.craigslist.org/{}_300x300.jpg>'
-    final_url = BASE_CRAIGSLIST_URL.format(quote_plus(search))
-    response = requests.get(final_url)
-    data = response.text
-    soup = BeautifulSoup(data, features='html.parser')
+    if search is not None:
+        BASE_CRAIGSLIST_URL = 'https://sacramento.craigslist.org/search/?query={}'
+        Empty_Search = 'https://sacramento.craigslist.org/search/?query='
 
-    objs = soup.find_all('li', {'class': 'result-row'})
+        # this now allows the pagination to work
+        final_url = BASE_CRAIGSLIST_URL.format(quote_plus(str(search)))
 
-    for obj in objs:
-        title = obj.find(class_='result-title').text
-        url = obj.find('a').get('href')
+        if final_url != Empty_Search:
+            response = requests.get(final_url)
+            data = response.text
+            soup = BeautifulSoup(data, features='html.parser')
 
-        if obj.find(class_='result-price'):
-            price = obj.find(class_='result-price').text
-        else:
-            price = 'N/A'
+            objs = soup.find_all('li', {'class': 'result-row'})
 
-        image_url = 'https://i.pinimg.com/originals/09/6a/35/096a35453660aa9b83ba4ab6d9182d61.jpg'
-        # image_url = 'https://pixelz.cc/wp-content/uploads/2019/02/bugatti-chiron-sport-110-ans-uhd-4k-wallpaper.jpg'
+            for obj in objs:
+                title = obj.find(class_='result-title').text
+                url = obj.find('a').get('href')
 
-        # this loop is what updates the field if it needs to be uodated. It also creates the object if the object isnt already there.
-        if models.Product.objects.filter(Name=title, Price=price, Link=url):
-            if models.Product.objects.filter(Name=title, Price=price, Link=url, Image=image_url):
-                continue
-            else:
-                models.Product.objects.filter(Name=title, Price=price, Link=url).update(Name=title, Price=price, Link=url, Image=image_url)
-        else:
-            models.Product.objects.update_or_create(Name=title, Price=price, Link=url, Image=image_url)
+                if obj.find(class_='result-price'):
+                    price = obj.find(class_='result-price').text
+                else:
+                    price = 'N/A'
 
-    final_postings = models.Product.objects.all()
+                image_url = 'https://i.pinimg.com/originals/09/6a/35/096a35453660aa9b83ba4ab6d9182d61.jpg'
+                # image_url = 'https://pixelz.cc/wp-content/uploads/2019/02/bugatti-chiron-sport-110-ans-uhd-4k-wallpaper.jpg'
 
+                # this loop is what updates the field if it needs to be uodated. It also creates the object if the object isnt already there.
+                if models.Product.objects.filter(Name=title, Link=url):
+                    if models.Product.objects.filter(Name=title, Price=price, Link=url, Image=image_url):
+                        continue
+                    else:
+                        models.Product.objects.filter(Name=title, Link=url).update(Name=title, Price=price, Link=url, Image=image_url)
+                else:
+                    models.Product.objects.update_or_create(Name=title, Price=price, Link=url, Image=image_url)
+
+    # this orders it by alphabetizing. The one above was by which one was first in the data base or 'ID'
+    product_list = models.Product.objects.get_queryset().order_by('Name')
+    page = request.GET.get('page', 1)
+
+    paginator = Paginator(product_list, 12)
+    try:
+        Products = paginator.page(page)
+    except PageNotAnInteger:
+        Products = paginator.page(1)
+    except EmptyPage:
+        Products = paginator.page(paginator.num_pages)
+
+    # keep getting quote_from_bytes error but everything works. If you want to revert to old code copy views.py and search.html
+    # from github. Its stable code.
 
     stuff_for_frontend = {
         'Search': search,
-        'final_postings': final_postings,
+        'products': Products,
     }
     return render(request, 'frontend/search.html', stuff_for_frontend)
 
